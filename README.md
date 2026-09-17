@@ -1,76 +1,128 @@
 # AI Evaluation Release Gate
 
-[![Tests and coverage](https://github.com/Snuthakki21/ai-evaluation-release-gate/actions/workflows/ci.yml/badge.svg)](https://github.com/Snuthakki21/ai-evaluation-release-gate/actions/workflows/ci.yml) [![Publish application](https://github.com/Snuthakki21/ai-evaluation-release-gate/actions/workflows/pages.yml/badge.svg)](https://github.com/Snuthakki21/ai-evaluation-release-gate/actions/workflows/pages.yml)
-
-**[Open the application](https://Snuthakki21.github.io/ai-evaluation-release-gate/)** · [Independent Staff Engineer review](projects/ai_release_gate/independent-staff-review.md) · [Shared runtime review](docs/INDEPENDENT_RUNTIME_REVIEW.md) · [Verification evidence](docs/VALIDATION.md) · [Tests](tests) · [Run locally](docs/RUNNING.md)
-
 ![Application workspace](docs/screenshots/desktop.png)
 
-Examples: [Default input](examples/base.json) · [Block invented citation and unsafe action](examples/scenario-2.json) · [Hold a slow candidate](examples/scenario-3.json) · [Executed default report](examples/report.json)
+A versioned evidence workspace for reviewing AI response changes before release.
 
-An AI platform leader needs a reviewable answer to “Can we release this change?” This application compares baseline and candidate responses, explains failed cases, and applies explicit quality, cost and response-time gates. A passing result means **advance to broader validation on this synthetic suite**, not approval for production.
+[Open application](https://Snuthakki21.github.io/ai-evaluation-release-gate/) · [Architecture](docs/ARCHITECTURE.md) · [Domain contracts](docs/DOMAIN_CONTRACTS.md) · [Runbook](docs/PRODUCT_RUNBOOK.md) · [Tests](tests) · [Historical independent review](projects/ai_release_gate/independent-staff-review.md)
 
-## Two-minute demonstration
+[![Tests](https://github.com/Snuthakki21/ai-evaluation-release-gate/actions/workflows/ci.yml/badge.svg)](https://github.com/Snuthakki21/ai-evaluation-release-gate/actions/workflows/ci.yml)
+
+A candidate can improve its average answer score while breaking refusals, citing nonexistent sources, exceeding latency limits or hiding regressions in a small cohort. Release Gate brings those failure modes into a single reproducible experiment with visible case transcripts and explicit acceptance policy.
+
+## Start the application
+
+Python 3.11 or later is supported. The calculation engine uses the standard library. From a source checkout:
 
 ```sh
-python -m portfolio run ai_release_gate
-python -m unittest tests.test_ai_release_gate -v
+python3 -m portfolio serve
 ```
 
-The default contains eight original cases: six evidence questions, one missing-evidence refusal and one malicious attachment. The candidate passes seven gates. Select the invented-citation/unsafe-action scenario to see a hold decision, or the slow-candidate scenario to isolate an operating failure. Inspect `details.candidate_cases` to see each answer, missing fact, invalid citation and attempted action.
+Open `http://127.0.0.1:8765`. Load an example, adjust domain controls or import JSON, run the calculation and inspect its evidence. The public application executes the same Python product code in a browser worker. Browser records stay in that browser; the native workspace uses a local SQLite store. Neither deployment implies a shared authenticated cloud service.
 
-Use `--input path/to/input.json` to evaluate changed response snapshots and thresholds. `fixtures.json` is a complete input example. Source labels are fictional demo policies, not real employer requirements.
+For an auditable file-to-file run:
 
-## Principal-level engineering evidence
-
-The release outcome is calculated from response text and references, not preassigned grades. Expected claims must exist in supplied evidence. Unknown citations, omitted claims, incorrect refusal behavior, canary disclosure and unauthorized actions lower results. The evaluator checks baseline regression and absolute quality independently. Candidate live prompts receive questions and evidence, never expected answers or gold labels.
-
-## Director-level delivery evidence
-
-A single report connects the proposed change to user outcomes and operating limits. Named gates let product, engineering and risk owners discuss the same evidence. All numeric thresholds are editable demonstration assumptions; they are not regulatory requirements. Failed cases remain visible rather than being averaged out of the report.
-
-## Architecture
-
-```mermaid
-flowchart LR
-    A[Versioned original cases] --> B[Baseline snapshots]
-    A --> C[Candidate snapshots or live model]
-    B --> D[Deterministic evidence rubric]
-    C --> D
-    D --> E[Absolute and regression gates]
-    E --> F[Release decision and failure examples]
+```sh
+python3 -m portfolio run ai_release_gate --input examples/base.json --output reports/result.json
+python3 -m unittest discover -s tests -v
 ```
 
-A fixed evaluation workflow is appropriate because grading steps and acceptance criteria are known. An autonomous agent would make a release-control path harder to reproduce without adding necessary capability. Standard-library Python is sufficient.
+The domain engine accepts an input object and returns a structured report. The workspace adds scenario revisions, execution history, comparisons and review records. [Running guide](docs/RUNNING.md) covers platform commands, storage and packaging. [Model integration](docs/MODEL_INTEGRATION.md) covers optional providers; public browser execution requires no model key.
 
-## Measurable evaluation
+## User workflows
 
-Tests cover omitted evidence, invented references, refusal-language mismatch, injected instructions, unauthorized actions, exact latency boundaries, token-derived costs, malformed suites, invalid gold labels, live output checking and input immutability. All eight cases contribute to a transparent four-part rubric: expected-claim coverage, evidence completeness, refusal correctness and forbidden-content/action checks.
+### 1. Review a candidate
 
-Offline latency and token counts are declared synthetic snapshot fields. Illustrative token prices are inputs, not vendor quotes. Live mode measures wall-clock latency and estimates tokens from text length; actual provider usage is unavailable at this seam. Reported cost must therefore remain labeled an estimate.
+Load a case suite, set baseline and candidate prompt-version labels, inspect the expected claims and source documents, then grade both snapshots. The report holds the candidate whenever any configured gate fails.
 
-## Live AI status and limits
+### 2. Investigate a regression
 
-The optional shared `context.generate_json` integration requests genuine candidate answers when configured in live mode. Local execution uses no model and requires no credentials. Unit tests use a controlled context double, so they verify the integration contract rather than vendor behavior. No paid live calls were needed for the local tests.
+Use cohort analysis and error analysis to separate answerable cases, refusals and injection canaries. Inspect missing claims, unsupported claims, invalid citations, forbidden actions and the original candidate answer.
 
-Exact phrase checks are intentionally strict and may reject correct paraphrases. They can also miss unsupported additional statements. Refusal markers and canary checks are useful regression signals, not comprehensive factuality or injection defenses. Eight synthetic cases do not estimate real-world failure frequency.
+### 3. Assess statistical and operating uncertainty
 
-## Production roadmap
+Read paired quality deltas, seeded bootstrap intervals and Wilson intervals alongside sample size. Compare total illustrative cost, serial evaluation time and cost per fully passing case before deciding whether to collect a larger holdout.
 
-Add independently authored holdouts, repeated model trials, actual provider telemetry, and a semantic grader calibrated to expert labels. Version prompts, model identifiers, dataset revisions and policy changes. Bind release overrides to accountable owners and preserve their rationale. Keep deterministic checks alongside semantic evaluation.
+### 4. Evaluate a real candidate model
 
-The design follows outcome-focused evaluation principles in [Anthropic’s agent evaluation guidance](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents). Risk coverage can be expanded using the [NIST GenAI profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence); this project claims no certification.
+Run the native service with a configured provider. Validation completes before the first model call. The candidate receives only the question and untrusted source documents, never expected answers or gold labels. Wall-clock latency is measured; tokens and cost remain estimates.
 
-## Input/output and operating contract
+## Implemented capabilities
 
-| Input | Supported behavior |
+| Capability | Behavior |
 |---|---|
-| `cases` | 2–200 uniquely identified cases; at least one answerable, refusal and injection-challenge case |
-| Case evidence | `question`, source `documents` with unique `id`/`text`, `expected_claims`, `must_refuse`, `forbidden_terms`, `allowed_actions` |
-| Baseline/candidate snapshot | `answer`, citation identifiers, Boolean `refused`, attempted `actions`, latency milliseconds, input/output token counts |
-| `thresholds` | Optional overrides for minimum quality/citation/refusal/injection rates, maximum regression, p95 latency and mean cost |
-| `illustrative_prices` | Nonnegative input and output USD prices per million tokens |
+| Evaluation architecture | Evidence-grounded grading, refusal checks, citation validity/completeness, action allowlists and injection canaries. |
+| Experiment reproducibility | Versioned suite and prompt labels; SHA-256 identities bind rubric data and response snapshots separately. Live evaluated rows have their own digest. |
+| Paired analysis | Baseline and candidate share the same cases. Seeded resampling estimates descriptive uncertainty in the paired mean difference. |
+| Failure diagnosis | Cohorts preserve regressions that an overall average can obscure; failed case text remains inspectable. |
+| Release policy | Absolute quality, citation, refusal and injection gates plus baseline-regression, p95 latency and mean-cost budgets. |
+| Bounded inference | Optional structured candidate generation with a JSON schema, provider budgets and validation; no autonomous release action. |
 
-`details` contains both response-level reports, aggregate results, gate operands and the final decision. Percentiles use nearest rank. Unknown threshold names, negative/nonfinite numbers, invalid response types, unsupported gold claims and incomplete challenge coverage fail with `ValueError`; the shared CLI returns an error rather than a partial decision.
+## Application structure
 
-The application keeps no persistent state. Reruns do not mutate supplied payloads. Save input and output JSON together to preserve a reproducible release artifact; avoid treating a generated website snapshot as a fresh live evaluation. Dependencies are Python 3.11+ and the standard library; real candidate generation is an optional server-side provider capability.
+The project entry point is a compatibility adapter, not a second engine. Domain rules, application orchestration and AI components live in separate modules with direct unit coverage.
+
+| Component | Responsibility |
+|---|---|
+| [`app/domain/validation.py`](app/domain/validation.py) | Validates the complete suite and operating policy before optional inference. |
+| [`app/domain/grading.py`](app/domain/grading.py) | EvidenceGrader and AggregateStatistics calculate case evidence and nearest-rank p95. |
+| [`app/domain/policy.py`](app/domain/policy.py) | ReleasePolicy applies gates to unrounded aggregate values. |
+| [`app/domain/experiments.py`](app/domain/experiments.py) | ExperimentIdentity and ReleaseExperiment own hashes, paired resampling, confidence intervals, cohorts and operating envelope. |
+| [`app/ai/candidate.py`](app/ai/candidate.py) | CandidateGenerator executes the bounded optional model call. |
+| [`app/application/product.py`](app/application/product.py) | ProductApplication coordinates validation, inference, grading, policy and experiment reports. |
+| `app/platform/` | Workspace persistence, scenario versions, execution history, comparisons and review audit. |
+| `web/` | Domain-specific interface, editable controls, report rendering and browser workspace. |
+| `tests/` | Domain unit/regression tests plus runtime, API, package and interface verification. |
+| `examples/` | Complete synthetic inputs and an executed report. |
+
+## Input and output contract
+
+| Input | Contract |
+|---|---|
+| `cases` | 2–200 cases locally; live transport applies its tighter provider budget. Each suite needs answerable, refusal and canary-challenge coverage. |
+| `thresholds` | Explicit minimum quality/citation/refusal/injection rates and maximum regression, p95 latency and mean cost. |
+| `illustrative_prices` | Nonnegative input/output USD rates per million tokens; illustrative inputs, not vendor quotes. |
+| `experiment` | suite_version, baseline_prompt_version, candidate_prompt_version; seed 0–2³²−1; bootstrap_samples 100–2000 (default 400). |
+
+Reports retain `summary`, `metrics`, `evidence`, `next_actions` and full `details`. The execution layer adds provenance. Downloads contain complete result arrays even where the interface shows a bounded preview. Inputs are validated before optional model calls; invalid data fails explicitly rather than generating a partial success.
+
+## Verification
+
+Invented citations, incorrect numeric claims, missing refusal language, unauthorized actions, invalid gold labels, malformed cases, unknown policy keys and invalid experiment options are rejected or exposed by deterministic checks.
+
+Domain suites: [`tests/test_ai_release_gate.py`](tests/test_ai_release_gate.py), [`tests/test_product_experiments.py`](tests/test_product_experiments.py), [`tests/test_operations_independent.py`](tests/test_operations_independent.py). Existing independent regression tests are retained. New experiment tests verify repeatability, boundary conditions and calculations against independently expressed expectations. The historical review covers the prior implementation; expanded-source review and current CI evidence must be assessed separately.
+
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements-dev.txt
+.venv/bin/python -m coverage run -m unittest discover -s tests -v
+.venv/bin/python -m coverage report
+python3 -m portfolio build --output dist
+node --test tests/frontend.test.mjs
+```
+
+Coverage is a regression signal, not proof of correctness or production readiness. Runtime tests use controlled provider doubles unless a report explicitly records a real provider run.
+
+## Boundaries and operating assumptions
+
+- Exact evidence phrase matching can reject valid paraphrases and can miss unsupported additional statements. It is a transparent regression rubric, not a calibrated factuality oracle.
+- Prompt version labels are declared metadata, not proof that different prompts were executed. Snapshot hashes bind actual response evidence, and live output has a separate evaluated digest.
+- Bootstrap/Wilson intervals describe this finite synthetic suite. They do not establish production failure rates, adversarial robustness or regulatory approval.
+- Offline timings/token counts are supplied snapshots. Live latency is measured, while token counts and cost are estimated. A pass advances a candidate to broader validation; it does not deploy it.
+
+## Documentation
+
+- [Architecture and decisions](docs/ARCHITECTURE.md)
+- [Domain and AI contracts](docs/DOMAIN_CONTRACTS.md)
+- [Product runbook](docs/PRODUCT_RUNBOOK.md)
+- [Requirements and verification map](docs/REQUIREMENTS.md)
+- [Security policy](SECURITY.md)
+- [Third-party notices](docs/THIRD_PARTY.md)
+
+All examples are original synthetic fixtures. No employer, customer or confidential operational data is included.
+
+## Persistent workspace
+
+The interface includes a versioned scenario library, execution history, exact input/result replay, outcome comparison and evidence reviews. GitHub Pages persists records in this browser; the native server uses SQLite with optimistic revisions, idempotent execution reservations and a verifiable audit chain. Application and workspace data remain independent of every other repository.
+
+See [workspace workflows, installation, container, backup and recovery](docs/WORKSPACE.md), [HTTP API contracts](docs/API.md), [domain Staff Engineer review](docs/STAFF_REVIEW_V2.md), [platform Staff Engineer review](docs/STAFF_PLATFORM_REVIEW.md), and [measured validation](docs/VALIDATION.md).

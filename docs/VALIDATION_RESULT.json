@@ -1,0 +1,57 @@
+{
+  "repo": "ai-evaluation-release-gate",
+  "project_id": "ai_release_gate",
+  "title": "AI Evaluation Release Gate",
+  "coverage": 98.39601769911505,
+  "python_tests": 137,
+  "frontend_passed": 51,
+  "examples": 4,
+  "release": "2.0.0",
+  "python_skipped": 0,
+  "frontend_skipped": 6,
+  "browser": {
+    "repo": "ai-evaluation-release-gate",
+    "fresh": true,
+    "history": true,
+    "branded": true,
+    "title": "AI Evaluation Release Gate"
+  },
+  "mobile": {
+    "repo": "ai-evaluation-release-gate",
+    "workspace": {
+      "scroll": 375,
+      "width": 375
+    },
+    "library": {
+      "scroll": 375,
+      "width": 375
+    },
+    "usable": true
+  },
+  "installed_wheel": {
+    "repository": "ai-evaluation-release-gate",
+    "status": "passed",
+    "project_id": "ai_release_gate",
+    "wheel_bytes": 6445622,
+    "wheel_file": "ai_evaluation_release_gate-2.0.0-py3-none-any.whl",
+    "installed_cli": true,
+    "default_run": true,
+    "explicit_run": true,
+    "outside_checkout_build": true,
+    "packaged_application_source": true,
+    "fixture_count": 0,
+    "expected_fixture_count": 0,
+    "examples": 4,
+    "missing_runtime_assets": [],
+    "seconds": 3.182,
+    "wheel_sha256": "dd5946074538e0885a6e205558d80257ad5e4425ec145b074a8c70c59175387f",
+    "vendor_manifest_hashes_verified": 8,
+    "source_fixture_inventory_complete": true,
+    "personal_author_metadata_absent": true,
+    "pyproject_sha256": "7c24dac32825706efde3b9b9467a9964fac7a234b193db4a08301bad34ba4ec3",
+    "container_definition_sha256": "c205c738978ce7cecb779e14d604b3736429be760747f5880abcbf2d099c4e6b",
+    "compose_definition_sha256": "32c8bb3ab89a30043978d12874cb8c91001fcb762269765ace46fe46265faf91",
+    "docker_runtime_verified": false
+  },
+  "source_sha256": "dddbd8289c25345d71e95cbf6516f52047e008d32f12d0db2b52206c473eb4c9"
+}

@@ -1,19 +1,29 @@
-# Product brief
+# Product requirements and verification map — AI Evaluation Release Gate
 
-AI Evaluation Release Gate serves AI platform and risk leaders.
+| Requirement | Implementation | Verification |
+|---|---|
+| R-01: Evaluation architecture | Evidence-grounded grading, refusal checks, citation validity/completeness, action allowlists and injection canaries. | Domain suites listed below; inspect current CI evidence. |
+| R-02: Experiment reproducibility | Versioned suite and prompt labels; SHA-256 identities bind rubric data and response snapshots separately. Live evaluated rows have their own digest. | Domain suites listed below; inspect current CI evidence. |
+| R-03: Paired analysis | Baseline and candidate share the same cases. Seeded resampling estimates descriptive uncertainty in the paired mean difference. | Domain suites listed below; inspect current CI evidence. |
+| R-04: Failure diagnosis | Cohorts preserve regressions that an overall average can obscure; failed case text remains inspectable. | Domain suites listed below; inspect current CI evidence. |
+| R-05: Release policy | Absolute quality, citation, refusal and injection gates plus baseline-regression, p95 latency and mean-cost budgets. | Domain suites listed below; inspect current CI evidence. |
+| R-06: Bounded inference | Optional structured candidate generation with a JSON schema, provider budgets and validation; no autonomous release action. | Domain suites listed below; inspect current CI evidence. |
 
-The decision is: Is this AI change good enough to release?
+## Executable suites
 
-## Implemented outcome
+- `tests/test_ai_release_gate.py`
+- `tests/test_product_experiments.py`
+- `tests/test_operations_independent.py`
 
-Compare answer evidence, refusals, injection resistance, quality and operating limits before releasing an AI change.
+## Acceptance checks
 
-## Acceptance
+- Default and alternate scenarios execute through the public adapter and ProductApplication.
+- Invalid inputs are rejected before optional provider execution.
+- New domain results are rendered in the product interface and exported completely.
+- Saved scenario/run workflows use the common platform and preserve input revisions.
+- Current CI tests, static build and browser execution succeed for this repository.
+- A separate automated reviewer examines expanded source and records findings with validation evidence.
 
-Review all gate operands, failed transcripts and independent challenge coverage before advancing.
 
-## Scope boundaries
 
-- Offline latency and token counts are declared synthetic snapshot inputs.
-- Live token costs are estimated because this interface does not expose provider usage.
-- No compliance certification or production deployment is performed.
+The product README defines user workflows and input boundaries. Architecture and domain contract documents specify calculations and assumptions; this acceptance map links those requirements to executable verification.

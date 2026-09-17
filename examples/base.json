@@ -300,5 +300,12 @@
   "illustrative_prices": {
     "input_per_million": 1.0,
     "output_per_million": 4.0
+  },
+  "experiment": {
+    "suite_version": "operations-policy-v1",
+    "baseline_prompt_version": "evidence-v1",
+    "candidate_prompt_version": "evidence-v2",
+    "seed": 417,
+    "bootstrap_samples": 400
   }
 }

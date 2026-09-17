@@ -1,35 +1,39 @@
-# Standalone verification evidence
+# Version 2 validation
 
-Checked at 2026-09-17T05:01:46.101427+00:00. These results come from commands executed inside this repository after export.
-
-Runtime versions: Python 3.14.7; Node.js v25.9.0.
-
-Standalone release verification: **PASS**. All recorded commands passed.
+Verified 2026-09-17. This report records executed checks, separate from the domain and shared-platform reviewer verdicts.
 
 | Check | Observed result |
 |---|---|
-| Python unit and integration tests | 78 discovered; 78 executed; 0 skipped |
-| Statement coverage | 531/532 (99.81%) |
-| Branch coverage | 239/242 (98.76%) |
-| Frontend tests | 31 discovered; 25 executed; 6 skipped |
-| Built application discovery | ai_release_gate |
-| Installed project directories | ai_release_gate |
-| Installed UI templates | ai_release_gate |
-| Missing README targets | [] |
-| Default input | Executed through the repository CLI; saved in `examples/report.json` |
+| Python domain, runtime, API, storage and independent regression suites | 137 passed; 0 absent-project cases skipped |
+| JavaScript domain presentation, interaction state and workspace suites | 51 passed; 6 absent-project cases skipped |
+| Measured Python statement + branch coverage | **98.40%** across `app`, `portfolio` and `projects` |
+| Static build with executed scenarios | 4 scenarios, one product |
+| Actual browser execution | Fresh Python-worker result and retained execution history observed |
+| Mobile layout | Workspace and scenario library fit the 390px test viewport without page overflow |
+| Installed wheel | CLI/list/default run/explicit run/build passed outside source checkout; fixtures/runtime licenses and checksums verified |
+| Independent automated review | Domain and shared-platform findings corrected and independently retested |
 
-Reproduce from the repository root:
+The shared test harness skips cases for products absent from this standalone distribution; skips are not counted as passes. Measurements include existing failure-path tests and newly authored independent regression tests. Coverage describes executed branches, not a guarantee of correctness on every possible input.
+
+## Reproduce
 
 ```sh
 python -m pip install -r requirements-dev.txt
 python -m coverage run -m unittest discover -s tests -v
 python -m coverage report --fail-under=90
-python -m portfolio build --output dist
-node --test tests/frontend.test.mjs
+python -m portfolio build
+node --test tests/*.test.mjs
+python -m pip wheel --no-deps --wheel-dir build/wheels .
 ```
 
-Application source SHA-256: `41dc5447ea34d13b5edffb7c286168659d8358470f261b9c2ca7458e090c307a`.
+See [domain review](STAFF_REVIEW_V2.md), [platform review](STAFF_PLATFORM_REVIEW.md), [package review](PACKAGE_REVIEW.md), and [machine-readable results](VALIDATION_RESULT.json). [GitHub Actions](https://github.com/Snuthakki21/ai-evaluation-release-gate/actions) runs Python 3.11/3.14, frontend/build checks and an installed-package check before Pages publication.
 
-Coverage includes this application and its shared Python runtime. Skipped tests exercise capabilities belonging to applications absent from this standalone repository. Provider transport tests use controlled doubles; these counts are not live-model accuracy measurements. The frontend suite exercises rendering, escaping, input binding and asynchronous state with controlled DOM/worker harnesses; it is not an exhaustive visual, accessibility or browser compatibility audit. Coverage measures executed code paths and does not establish semantic correctness.
+## Browser and operating evidence
 
-See the solution-specific independent review linked in the README and the [shared runtime review](INDEPENDENT_RUNTIME_REVIEW.md) for review findings, repairs and limits.
+[Desktop view](screenshots/desktop.png) and [mobile view](screenshots/mobile.png) show the actual application interface. Each product was run in the browser and its successful execution was observed in history. Additional shared-flow checks saved a scenario, reloaded browser storage, recorded a native review and compared changed native inputs/results. The native stored run retained its earlier evidence review after later executions.
+
+The Python source digest for the executed sample is `dddbd8289c25345d71e95cbf6516f52047e008d32f12d0db2b52206c473eb4c9`. Reviewer manifests separately identify the actual files they examined. Executed reports preserve their own timestamp, input hash, source hash and model mode.
+
+## Limits of this validation
+
+These are automated tests and separate automated Staff Engineer reviews, not external human certification. Fixtures and held-out model examples are synthetic. Live model-provider contracts use controlled substitute responses in tests; no paid provider execution, enterprise benchmark or deployed production integration is claimed. Docker/Compose configuration is supplied and reviewed; Docker was unavailable in the verification environment, so container runtime behavior is not claimed as tested. The native application is documented as single-operator, with optional shared-token access rather than multi-user roles.
